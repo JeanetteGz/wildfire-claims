@@ -23,20 +23,20 @@ const categoryOptions: { value: FileCategory; label: string; icon: string }[] = 
 
 const DocumentationPage: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [activeTab, setActiveTab] = useState<'upload' | 'guide'>('upload');
+  const [activeView, setActiveView] = useState<'upload' | 'guide'>('guide');
   const [selectedCategory, setSelectedCategory] = useState<FileCategory>('receipt');
   const [activeCategory, setActiveCategory] = useState<FileCategory | 'all'>('all');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles: UploadedFile[] = acceptedFiles.map(file => ({
+    const newFiles = acceptedFiles.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
       file,
       preview: URL.createObjectURL(file),
-      type: file.type.startsWith('image/') ? 'photo' : 'receipt' as FileCategory,
+      type: (file.type.startsWith('image/') ? 'photo' : 'receipt') as FileCategory,
       status: 'complete' as const,
       category: selectedCategory
     }));
-    setUploadedFiles(prev => [...prev, ...newFiles]);
+    setUploadedFiles(prev => [...prev, ...newFiles] as UploadedFile[]);
   }, [selectedCategory]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -64,10 +64,8 @@ const DocumentationPage: React.FC = () => {
     return uploadedFiles.filter(file => file.category === category).length;
   };
 
-  return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Documentation Upload</h1>
-
+  const UploadView = () => (
+    <div className="space-y-6">
       {/* Category Selection */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -77,7 +75,7 @@ const DocumentationPage: React.FC = () => {
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value as FileCategory)}
           className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm 
-                   dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         >
           {categoryOptions.map(option => (
             <option key={option.value} value={option.value}>
@@ -130,7 +128,7 @@ const DocumentationPage: React.FC = () => {
                   : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
               }`}
             >
-              All ({getFileCountByCategory('all')})
+              All Files ({getFileCountByCategory('all')})
             </button>
             {categoryOptions.map(category => (
               <button
@@ -176,7 +174,7 @@ const DocumentationPage: React.FC = () => {
                   value={file.category}
                   onChange={(e) => changeFileCategory(file.id, e.target.value as FileCategory)}
                   className="w-full text-sm px-2 py-1 border rounded 
-                           dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                          dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
                   {categoryOptions.map(option => (
                     <option key={option.value} value={option.value}>
@@ -189,6 +187,83 @@ const DocumentationPage: React.FC = () => {
           ))}
         </div>
       )}
+    </div>
+  );
+
+  const GuideView = () => (
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
+        <h3 className="text-lg font-medium mb-4">Finding Your Documents</h3>
+        <div className="space-y-4">
+          <p className="text-gray-600 dark:text-gray-300">
+            Follow these steps to gather your documentation:
+          </p>
+          <ol className="list-decimal list-inside space-y-4">
+            <li className="text-gray-600 dark:text-gray-300">
+              Check your email for:
+              <ul className="list-disc list-inside ml-4 mt-2">
+                <li>Purchase confirmations</li>
+                <li>Order receipts</li>
+                <li>Digital invoices</li>
+              </ul>
+            </li>
+            <li className="text-gray-600 dark:text-gray-300">
+              Search your photos for:
+              <ul className="list-disc list-inside ml-4 mt-2">
+                <li>Pictures of items in your home</li>
+                <li>Renovation photos</li>
+                <li>Move-in documentation</li>
+              </ul>
+            </li>
+            <li className="text-gray-600 dark:text-gray-300">
+              Gather physical documents:
+              <ul className="list-disc list-inside ml-4 mt-2">
+                <li>Paper receipts</li>
+                <li>Warranty cards</li>
+                <li>User manuals</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+        <button
+          onClick={() => setActiveView('upload')}
+          className="mt-6 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Start Uploading →
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Documentation</h1>
+        <div className="flex space-x-4">
+          <button
+            onClick={() => setActiveView('guide')}
+            className={`px-4 py-2 rounded-lg ${
+              activeView === 'guide'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+            }`}
+          >
+            Find Documents
+          </button>
+          <button
+            onClick={() => setActiveView('upload')}
+            className={`px-4 py-2 rounded-lg ${
+              activeView === 'upload'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+            }`}
+          >
+            Upload Files
+          </button>
+        </div>
+      </div>
+
+      {activeView === 'guide' ? <GuideView /> : <UploadView />}
     </div>
   );
 };
